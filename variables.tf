@@ -69,6 +69,11 @@ variable "image" {
   default     = ""
 }
 
+variable "image_tag" {
+  description = "image tag to use - default is :latest (you need to prepend the colon)"
+  default     = ":latest"
+}
+
 variable "log_retention" {
   description = "for how many days to keep app logs"
   default     = 30

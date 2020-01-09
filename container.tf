@@ -3,7 +3,7 @@ module "container_definition" {
   version = "v0.10.0"
 
   container_name  = "${var.name}"
-  container_image = "${var.image == "" ? aws_ecr_repository.application.repository_url : var.image}"
+  container_image = "${var.image == "" ? format("%s%s", aws_ecr_repository.application.repository_url, var.image_tag) : var.image}"
 
   container_cpu                = "${var.cpu}"
   container_memory_reservation = "${var.memory}"
