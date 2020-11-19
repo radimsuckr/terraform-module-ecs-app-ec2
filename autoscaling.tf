@@ -1,16 +1,16 @@
 resource "aws_appautoscaling_target" "ecs_target" {
-  count              = "${var.scheduling_strategy == "REPLICA" ? 1 : 0}"
-  max_capacity       = "${var.max_capacity}"
-  min_capacity       = "${var.min_capacity}"
+  count              = var.scheduling_strategy == "REPLICA" ? 1 : 0
+  max_capacity       = var.max_capacity
+  min_capacity       = var.min_capacity
   resource_id        = "service/${var.cluster_name}/${var.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
-  depends_on         = ["aws_ecs_service.application"]
+  depends_on         = [aws_ecs_service.application]
 }
 
-/* metric used for auto scale */
+// metric used for auto scale
 resource "aws_cloudwatch_metric_alarm" "service_cpu_high" {
-  count               = "${var.scheduling_strategy == "REPLICA" ? 1 : 0}"
+  count               = var.scheduling_strategy == "REPLICA" ? 1 : 0
   alarm_name          = "${local.name_underscore}_cpu_utilization_high"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
@@ -18,19 +18,19 @@ resource "aws_cloudwatch_metric_alarm" "service_cpu_high" {
   namespace           = "AWS/ECS"
   period              = "60"
   statistic           = "Average"
-  threshold           = "${var.scale_up}"
+  threshold           = var.scale_up
 
   dimensions {
-    ClusterName = "${var.cluster_name}"
-    ServiceName = "${var.name}"
+    ClusterName = var.cluster_name
+    ServiceName = var.name
   }
 
-  alarm_actions = ["${aws_appautoscaling_policy.up.arn}"]
-  depends_on    = ["aws_appautoscaling_policy.up"]
+  alarm_actions = [aws_appautoscaling_policy.up.arn]
+  depends_on    = [aws_appautoscaling_policy.up]
 }
 
 resource "aws_cloudwatch_metric_alarm" "service_cpu_low" {
-  count               = "${var.scheduling_strategy == "REPLICA" ? 1 : 0}"
+  count               = var.scheduling_strategy == "REPLICA" ? 1 : 0
   alarm_name          = "${local.name_underscore}_cpu_utilization_low"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = "1"
@@ -38,19 +38,19 @@ resource "aws_cloudwatch_metric_alarm" "service_cpu_low" {
   namespace           = "AWS/ECS"
   period              = "60"
   statistic           = "Average"
-  threshold           = "${var.scale_down}"
+  threshold           = var.scale_down
 
   dimensions {
-    ClusterName = "${var.cluster_name}"
-    ServiceName = "${var.name}"
+    ClusterName = var.cluster_name
+    ServiceName = var.name
   }
 
-  alarm_actions = ["${aws_appautoscaling_policy.down.arn}"]
-  depends_on    = ["aws_appautoscaling_policy.down"]
+  alarm_actions = [aws_appautoscaling_policy.down.arn]
+  depends_on    = [aws_appautoscaling_policy.down]
 }
 
 resource "aws_appautoscaling_policy" "up" {
-  count              = "${var.scheduling_strategy == "REPLICA" ? 1 : 0}"
+  count              = var.scheduling_strategy == "REPLICA" ? 1 : 0
   name               = "${local.name_underscore}_scale_up"
   service_namespace  = "ecs"
   resource_id        = "service/${var.cluster_name}/${var.name}"
@@ -58,7 +58,7 @@ resource "aws_appautoscaling_policy" "up" {
 
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
-    cooldown                = "${var.cooldown}"
+    cooldown                = var.cooldown
     metric_aggregation_type = "Average"
 
     step_adjustment {
@@ -67,13 +67,11 @@ resource "aws_appautoscaling_policy" "up" {
     }
   }
 
-  depends_on = [
-    "aws_appautoscaling_target.ecs_target",
-  ]
+  depends_on = [aws_appautoscaling_target.ecs_target]
 }
 
 resource "aws_appautoscaling_policy" "down" {
-  count              = "${var.scheduling_strategy == "REPLICA" ? 1 : 0}"
+  count              = var.scheduling_strategy == "REPLICA" ? 1 : 0
   name               = "${local.name_underscore}_scale_down"
   service_namespace  = "ecs"
   resource_id        = "service/${var.cluster_name}/${var.name}"
@@ -81,7 +79,7 @@ resource "aws_appautoscaling_policy" "down" {
 
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
-    cooldown                = "${var.cooldown}"
+    cooldown                = var.cooldown
     metric_aggregation_type = "Average"
 
     step_adjustment {
@@ -90,7 +88,5 @@ resource "aws_appautoscaling_policy" "down" {
     }
   }
 
-  depends_on = [
-    "aws_appautoscaling_target.ecs_target",
-  ]
+  depends_on = [aws_appautoscaling_target.ecs_target]
 }

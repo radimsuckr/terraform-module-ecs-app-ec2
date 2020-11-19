@@ -28,22 +28,23 @@ variable "alb_arn" {
 
 variable "private_subnet_ids" {
   description = "list of private subnets where to provision services"
-  type        = "list"
+  type        = list
 }
 
 variable "port" {
   description = "port on which the service listens"
   default     = 80
+  type        = number
 }
 
 variable "environment" {
-  type    = "list"
   default = []
+  type    = list
 }
 
 variable "secrets" {
-  type    = "list"
   default = []
+  type    = list
 }
 
 variable "cpu" {
